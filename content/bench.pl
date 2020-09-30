@@ -12,7 +12,7 @@ sub run {#{{{
 	my $start = [gettimeofday];
 	system($cmd);
 
-	return sprintf('%.3fs', tv_interval($start));
+	return tv_interval($start);
 }#}}}
 
 sub main {#{{{
@@ -59,11 +59,13 @@ sub main {#{{{
 	};
 
 	my $r = {};
+	my $mins = {};
 
 	my $fieldnames = ['Lang'];
 	opendir (DIR, 'inputs') or die $!;
 	while (my $file = readdir(DIR)) {
 		$file =~ /^\./ and next;
+		$mins->{$file} = undef;
 
 		push @{$fieldnames}, $file;
 		foreach my $p ( keys %{$all} ) {
@@ -72,6 +74,11 @@ sub main {#{{{
 			print "Processing $file with $p\n";
 			system($e->{pre}) if $e->{pre};
 			$r->{$p}->{$file} = run("$e->{cmd} < inputs/$file > outputs/${p}_${file}");
+			if (defined $r->{$p}->{$file}) {
+				if (not defined($mins->{$file}) or ($mins->{$file} > $r->{$p}->{$file})) {
+					$mins->{$file} = $r->{$p}->{$file};
+				}
+			}
 		}
 	}
 	closedir(DIR);
@@ -79,7 +86,11 @@ sub main {#{{{
 	my $t = Text::ASCIITable->new({ headingText => 'Summary', utf8 => 0 });
 	$t->setCols(@{$fieldnames});
 	foreach my $p ( sort keys %{$r} ) {
-		$t->addRow(map { $_ eq 'Lang' ? $p : $r->{$p}->{$_} } @{$fieldnames});
+		$t->addRow(map { $_ eq 'Lang' ? $p : (defined($r->{$p}->{$_}) ? sprintf('%.3fs (%6.1f%%)',
+				$r->{$p}->{$_},
+				$mins->{$_} == 0 ? 0 : (100.0 * $r->{$p}->{$_} / $mins->{$_})
+				) : '---')
+			} @{$fieldnames});
 	}
 
 	print $t->draw;

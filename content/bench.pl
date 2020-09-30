@@ -52,6 +52,10 @@ sub main {#{{{
 			pre => 'javac uwc.java',
 			cmd => 'java uwc',
 		},
+		go => {
+			pre => 'go build -o uwc.go.bin uwc.go',
+			cmd => './uwc.go.bin',
+		},
 	};
 
 	my $r = {};

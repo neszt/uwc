@@ -12,6 +12,22 @@ sub run {#{{{
 	my $start = [gettimeofday];
 	system($cmd);
 
+	if ($? == -1) {
+		print "failed to execute: $!\n";
+		return undef;
+	}
+	elsif ($? & 127) {
+		printf "child died with signal %d, %s coredump\n",
+		($? & 127),  ($? & 128) ? 'with' : 'without';
+		return undef;
+	}
+	else {
+		my $e = $? >> 8;
+		if ($e != 0) {
+			printf "child exited with value %d\n", $e;
+			return undef;
+		}
+	}
 	return tv_interval($start);
 }#}}}
 

@@ -13,7 +13,12 @@ while($f = fgets(STDIN)){
 	}
 }
 
-asort($res);
+uksort($res, function($a, $b) use ($res) {
+	if ( $res[$a] == $res[$b] ) {
+		return strcmp($a, $b);
+	}
+	return $res[$a] - $res[$b];
+});
 
 foreach ( $res as $k => $v ) {
 	print "$k $v\n";

@@ -2,4 +2,4 @@
 
 unset LANG
 
-tr " " "\n" | grep -i "^[a-z']\+$" | sort | uniq -c | sort -n | awk '{print $2" "$1}'
+sed -E "s/[^a-z']+/\n/gi" | grep -i "^[a-z']\+$" | sort | uniq -c | sort -n | awk '{print $2" "$1}'

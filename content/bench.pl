@@ -31,6 +31,25 @@ sub run {#{{{
 	return tv_interval($start);
 }#}}}
 
+sub cell {#{{{
+    my $t = shift;
+    my $m = shift;
+
+	return '---' if not defined($t);
+
+	my $s = sprintf('%.3fs', $t);
+	if (! $m) {
+		$s .= ' (   ??? )';
+	} else {
+		if ($t != $m) {
+			$s .= sprintf(' (%6.1f%%)', 100.0 * $t / $m)
+		} else {
+			$s .= '          '
+		}
+	}
+	return $s;
+}#}}}
+
 sub main {#{{{
 
 	system('mkdir -p outputs');
@@ -102,10 +121,7 @@ sub main {#{{{
 	my $t = Text::ASCIITable->new({ headingText => 'Summary', utf8 => 0 });
 	$t->setCols(@{$fieldnames});
 	foreach my $p ( sort keys %{$r} ) {
-		$t->addRow(map { $_ eq 'Lang' ? $p : (defined($r->{$p}->{$_}) ? sprintf('%.3fs (%6.1f%%)',
-				$r->{$p}->{$_},
-				$mins->{$_} == 0 ? 0 : (100.0 * $r->{$p}->{$_} / $mins->{$_})
-				) : '---')
+		$t->addRow(map { $_ eq 'Lang' ? $p : cell($r->{$p}->{$_}, $mins->{$_})
 			} @{$fieldnames});
 	}
 
